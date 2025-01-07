@@ -73,7 +73,7 @@ while running:
             shadow_layer.fill((0, 0, 0, 0))
 
             # 绘制阴影
-            draw.draw_shadow(shadow_layer, x, y, handclick.current_thickness)
+            draw.draw_shadow(shadow_layer, handclick.current_color, x, y, handclick.current_thickness)
 
             #更新阴影坐标
             shadow_pos = (x, y)
@@ -82,7 +82,7 @@ while running:
             handclick.handle_button_click(shadow_pos)
 
             if handclick.mode == "drag": # drag 模式下
-                if gesture.is_palm_open(hand_landmarks):
+                if not gesture.operator(hand_landmarks):
                      is_dragging = False
                      prev_x, prev_y = None, None  # 停止拖拽时重置坐标
                 elif gesture.operator(hand_landmarks) and not is_dragging:

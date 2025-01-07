@@ -1,9 +1,9 @@
 import pygame
 
 
-def draw_shadow(surface, x, y, size):
+def draw_shadow(surface, color, x, y, size):
     """绘制实时阴影"""
-    pygame.draw.circle(surface, (0, 0, 255, 128), (x, y), size)
+    pygame.draw.circle(surface, color, (x, y), size)
 
 
 def draw_brush(surface, x, y, thickness, color):

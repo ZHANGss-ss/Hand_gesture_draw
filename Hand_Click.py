@@ -8,9 +8,9 @@ buttons = [
     {"rect": pygame.Rect(130, 10, 50, 30), "color": (0, 0, 255), "action": "color", "value": (0, 0, 255)},  # 蓝色按钮
     {"rect": pygame.Rect(190, 10, 50, 30), "color": (0, 0, 0), "action": "decrease_thickness"},  # 减小线条宽度
     {"rect": pygame.Rect(250, 10, 50, 30), "color": (128, 128, 128), "action": "increase_thickness"},  # 增大线条宽度
-    {"rect": pygame.Rect(310, 10, 70, 30), "color": (200, 200, 200), "action": "toggle_drag"},  # 拖拽按钮
-    {"rect": pygame.Rect(390, 10, 70, 30), "color": (100, 100, 100), "action": "toggle_erase"},  # 擦除按钮
-    {"rect": pygame.Rect(410, 10, 70, 30), "color": (0, 150, 100), "action": "toggle_draw"},  # 擦除按钮
+    {"rect": pygame.Rect(310, 10, 30, 30), "color": (200, 200, 200), "action": "toggle_drag"},  # 拖拽按钮
+    {"rect": pygame.Rect(370, 10, 30, 30), "color": (100, 100, 100), "action": "toggle_erase"},  # 擦除按钮
+    {"rect": pygame.Rect(430, 10, 30, 30), "color": (0, 150, 100), "action": "toggle_draw"},  # 擦除按钮
 ]
 
 def draw_buttons(surface):
