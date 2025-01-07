@@ -32,6 +32,12 @@
 - 提供三种可选画笔颜色，也是碰撞选择
 - 提供范围为1-20的画笔粗细,通过碰撞按钮可以增大或减小画笔粗细
 - 按钮上均设置了冷却时间，防止手势识别频率过快带来的不便操作
+- 按钮功能说明
+
+
+| <div style="background-color: rgb(255, 0, 0); width: 50px; height: 50px;"></div>   </span> | <div style="background-color: rgb(0, 255, 0); width: 50px; height: 50px;"></div> | <div style="background-color: rgb(0, 0, 255); width: 50px; height: 50px;"></div>   | <div style="background-color: rgb(0, 0, 0); width: 50px; height: 50px;"></div>   | <div style="background-color: rgb(128, 128, 128); width: 50px; height: 50px;"></div>  | <div style="background-color: rgb(200, 200, 200); width: 50px; height: 50px;"></div> | <div style="background-color: rgb(100, 100, 100); width: 50px; height: 50px;"></div> | <div style="background-color: rgb(0, 150, 100); width: 50px; height: 50px;"></div>  |
+| :-------: | :-------:| :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
+| 红色笔   | 浅绿色笔 | 蓝色笔   | 变细     | 变粗     | 拖拽模式 | 擦除模式 | 绘画模式 |
 
 
 ## 测试版本说明
