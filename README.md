@@ -20,6 +20,7 @@
   - 最终合并到main分支发布最终版本
 
 ## 日常开发流程说明
+- **记得及时拉取最新的提交，避免后续冲突**
 - 基于dev分支创建xxx分支, 例如`feature/improve_draw`、`feature/clear`
 - 在xxx分支上进行开发,在本地尝试正常运行后**提交pr到dev分支**
 - **!!!!不要在main分支上创建分支, 只基于dev分支上创建分支, 避免后面合并时产生不必要的冲突和麻烦**
@@ -38,6 +39,8 @@
 | <div style="background-color: rgb(255, 0, 0); width: 50px; height: 50px;"></div>   </span> | <div style="background-color: rgb(0, 255, 0); width: 50px; height: 50px;"></div> | <div style="background-color: rgb(0, 0, 255); width: 50px; height: 50px;"></div>   | <div style="background-color: rgb(0, 0, 0); width: 50px; height: 50px;"></div>   | <div style="background-color: rgb(128, 128, 128); width: 50px; height: 50px;"></div>  | <div style="background-color: rgb(200, 200, 200); width: 50px; height: 50px;"></div> | <div style="background-color: rgb(100, 100, 100); width: 50px; height: 50px;"></div> | <div style="background-color: rgb(0, 150, 100); width: 50px; height: 50px;"></div>  |
 | :-------: | :-------:| :-------: | :-------: | :-------: | :-------: | :-------: | :-------: |
 | 红色笔   | 浅绿色笔 | 蓝色笔   | 变细     | 变粗     | 拖拽模式 | 擦除模式 | 绘画模式 |
+
+
 
 
 ## 测试版本说明
