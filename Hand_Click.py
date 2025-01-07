@@ -50,7 +50,9 @@ def handle_button_click(pos):
                         print("切换到拖拽模式")
                 elif button["action"] == "toggle_erase":
                         mode = "erase"  # 切换到擦除模式
+                        print("切换到拖拽模式")
                 elif button["action"] == "toggle_draw":
                         mode = "draw"  # 切换到绘制模式
+                        print("切换到拖拽模式")
                 last_button_click_time = current_time  # 更新按钮点击时间
                 

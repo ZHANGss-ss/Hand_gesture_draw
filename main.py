@@ -30,6 +30,9 @@ hands = mp_hands.Hands(
     min_tracking_confidence=0.5
 )
 
+#帧率控制
+clock = pygame.time.Clock()
+
 # 当前模式：绘画、擦除或拖拽
 
 prev_x, prev_y = None, None
@@ -64,6 +67,11 @@ while running:
     result = hands.process(rgb_frame)
     if result.multi_hand_landmarks:
         for hand_landmarks in result.multi_hand_landmarks:
+
+            # 绘制手部关键点和连接线
+            mp_drawing = mp.solutions.drawing_utils
+            mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
 
             # 获取食指指尖坐标
             index_finger = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
@@ -128,6 +136,9 @@ while running:
         prev_x, prev_y = None, None
         is_dragging = False
 
+    # 在新窗口中显示手势检测画面
+    cv2.imshow("Gesture Detection", frame)  # 显示带关键点和连接线的手势检测画面
+
     screen.fill((255, 255, 255))
 
     # 绘制画布内容，考虑偏移
@@ -136,7 +147,30 @@ while running:
 
     handclick.draw_buttons(screen)  # 绘制按钮
 
+    # 绘制当前模式
+    mode_text = font.render(f"Mode: {handclick.mode}", True, (0, 0, 0))  # 黑色文本
+    screen.blit(mode_text, (600, 10))  # 在右上角显示模式
+    # 显示当前颜色和粗细
+    color_text = font.render(f"Color: {handclick.current_color}", True, (0, 0, 0))  # 黑色文本
+    screen.blit(color_text, (600, 40))
+    thickness_text = font.render(f"Thickness: {handclick.current_thickness}", True, (0, 0, 0))
+    screen.blit(thickness_text, (600, 70))
+    # 显示当前偏移
+    offset_text = font.render(f"offset: {canvas_offset_x, canvas_offset_y}", True, (0, 0, 0))
+    screen.blit(offset_text, (50, 570))
+
+    # 计算和显示帧率
+    current_time = time.time()
+    fps = 1 / (current_time - prev_time) if current_time - prev_time > 0 else 0
+    prev_time = current_time
+    fps_text = font.render(f"FPS: {fps:.2f}", True, (0, 0, 0))
+    screen.blit(fps_text, (screen.get_width() - fps_text.get_width() - 10, screen.get_height() - fps_text.get_height() - 10))
+
     pygame.display.flip()
+
+    # 退出条件
+    if cv2.waitKey(1) & 0xFF == ord('q'):  # 按下 'q' 键退出
+        break
 
 cap.release()
 cv2.destroyAllWindows()  # 关闭所有OpenCV窗口
