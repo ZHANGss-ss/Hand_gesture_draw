@@ -87,7 +87,7 @@ while running:
             shadow_pos = (x, y)
 
             # 调用按钮点击处理函数
-            handclick.handle_button_click(shadow_pos)
+            handclick.handle_button_click(shadow_pos, canvas)
 
             if handclick.mode == "drag": # drag 模式下
                 if not gesture.operator(hand_landmarks):

@@ -32,7 +32,7 @@ def is_palm_open(hand_landmarks, threshold=0.2):
     and operator(hand_landmarks) != True for f in fingers)
     return open_count == 5
 
-def operator(hand_landmarks, threshold1=0.05, threshold2=0.01):
+def operator(hand_landmarks, threshold1=0.1, threshold2=0.03):
     """判断拇指和食指是否靠拢"""
     thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]  # 拇指指尖
     index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]  # 食指指尖

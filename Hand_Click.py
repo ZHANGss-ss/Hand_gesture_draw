@@ -9,8 +9,8 @@ buttons = [
     {"rect": pygame.Rect(190, 10, 50, 30), "color": (0, 0, 0), "action": "decrease_thickness"},  # 减小线条宽度
     {"rect": pygame.Rect(250, 10, 50, 30), "color": (128, 128, 128), "action": "increase_thickness"},  # 增大线条宽度
     {"rect": pygame.Rect(310, 10, 30, 30), "color": (200, 200, 200), "action": "toggle_drag"},  # 拖拽按钮
-    {"rect": pygame.Rect(370, 10, 30, 30), "color": (100, 100, 100), "action": "toggle_erase"},  # 擦除按钮
-    {"rect": pygame.Rect(430, 10, 30, 30), "color": (0, 150, 100), "action": "toggle_draw"},  # 擦除按钮
+    {"rect": pygame.Rect(430, 10, 30, 30), "color": (0, 150, 100), "action": "toggle_draw"},  # 绘制按钮
+    {"rect": pygame.Rect(490, 10, 40, 30), "color": (135, 135, 135), "action": "clear_canvas"}#一键清空画布按钮
 ]
 
 def draw_buttons(surface):
@@ -28,7 +28,7 @@ shadow_pos = (0, 0)
 button_cooldown = 0.5   # 按钮冷却时间（秒）
 last_button_click_time = 0  # 上次按钮点击时间
 
-def handle_button_click(pos):
+def handle_button_click(pos,canvas):
     """处理按钮点击"""
     global current_color, current_thickness, mode,last_button_click_time
     current_time = time.time()
@@ -54,5 +54,8 @@ def handle_button_click(pos):
                 elif button["action"] == "toggle_draw":
                         mode = "draw"  # 切换到绘制模式
                         print("切换到拖拽模式")
+                elif button["action"] == "clear_canvas": # 添加清空画布按钮的处理逻辑
+                    canvas.fill((255, 255, 255)) # 用白色填充画布
+                    prev_x, prev_y = None, None # 重置绘制时的起点坐标
                 last_button_click_time = current_time  # 更新按钮点击时间
                 
