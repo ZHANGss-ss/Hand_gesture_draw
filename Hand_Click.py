@@ -28,7 +28,7 @@ shadow_pos = (0, 0)
 button_cooldown = 0.5   # 按钮冷却时间（秒）
 last_button_click_time = 0  # 上次按钮点击时间
 
-def handle_button_click(pos):
+def handle_button_click(pos,canvas):
     """处理按钮点击"""
     global current_color, current_thickness, mode,last_button_click_time
     current_time = time.time()
