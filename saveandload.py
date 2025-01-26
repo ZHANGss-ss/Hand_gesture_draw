@@ -2,27 +2,63 @@ import tkinter as tk
 from tkinter import filedialog
 import pygame
 
-def export_canvas_with_dialog(canvas):
+def export_canvas_with_dialog(
+    canvas,image_layer,
+    loaded_files,
+    canvas_offset_x,
+    canvas_offset_y,
+    current_scale
+):
     """
-    使用文件选择对话框导出画布。
-    :param canvas: 当前画布 (pygame.Surface)
+    导出画布时动态合并所有图层和导入的图片。
     """
-    # 初始化 Tkinter 并隐藏主窗口
+
+    # 初始化 Tkinter
     root = tk.Tk()
     root.withdraw()
 
-    # 打开保存文件对话框
+    # 打开保存对话框
     filetypes = [("PNG 文件", "*.png"), ("JPEG 文件", "*.jpg"), ("所有文件", "*.*")]
     filename = filedialog.asksaveasfilename(defaultextension=".png", filetypes=filetypes, title="保存画布为")
-    
-    if filename:  # 用户选择了文件名
-        try:
-            pygame.image.save(canvas, filename)
-            print(f"画布已成功导出为文件：{filename}")
-        except Exception as e:
-            print(f"导出画布失败：{e}")
-    else:
+
+    if not filename:
         print("取消保存操作")
+        return
+
+    try:
+        # 创建临时合并层
+        merged_surface = pygame.Surface(canvas.get_size(), pygame.SRCALPHA)
+        merged_surface.fill((255, 255, 255))  # 白色背景
+
+        # 合并画布
+        merged_surface.blit(canvas, (0, 0))
+
+        # 合并导入的图片
+        for file in loaded_files:
+            # 计算图片在画布上的实际位置（反向转换屏幕坐标）
+            screen_x, screen_y = file["rect"].topleft
+            canvas_x = (screen_x - canvas_offset_x) / current_scale
+            canvas_y = (screen_y - canvas_offset_y) / current_scale
+
+            # 缩放图片到原始尺寸（因为加载时可能已经缩放）
+            original_width = file["original_image"].get_width()
+            original_height = file["original_image"].get_height()
+            scaled_image = pygame.transform.scale(
+                file["original_image"],
+                (int(original_width * file["scale"]), int(original_height * file["scale"]))
+            )
+
+            # 将图片绘制到合并层
+            merged_surface.blit(scaled_image, (int(canvas_x), int(canvas_y)))
+
+        # 最后合并绘制图层
+        merged_surface.blit(image_layer, (0, 0))
+        # 保存合并后的图像
+        pygame.image.save(merged_surface, filename)
+        print(f"画布已成功导出为文件：{filename}")
+
+    except Exception as e:
+        print(f"导出失败：{e}")
 
 def load_canvas_with_dialog(canvas):
     """

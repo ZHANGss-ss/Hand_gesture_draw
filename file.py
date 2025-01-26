@@ -28,10 +28,11 @@ def load_file_with_dialog():
             original_image = convert_pdf_to_image(file_path)
         else:
             original_image = load_image(file_path)
+        scaled_image = pygame.transform.scale(original_image, (100, 100))  # 初始缩放
         return {
             "original_image": original_image,
-            "image": original_image,
-            "rect": pygame.Rect(100, 100, original_image.get_width(), original_image.get_height()),
+            "image": scaled_image,
+            "rect": scaled_image.get_rect(topleft=(100, 100)),  # 初始位置
             "scale": 1.0
         }
     return None

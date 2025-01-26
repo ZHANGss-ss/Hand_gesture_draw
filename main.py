@@ -72,15 +72,30 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
+            # 修改按键事件中的保存逻辑
             if event.key == pygame.K_s:  # 按 "S" 键保存
-                sal.export_canvas_with_dialog(canvas)
+                sal.export_canvas_with_dialog(
+                    canvas,
+                    image_layer,
+                    loaded_files,  # 传递导入的图片列表
+                    canvas_offset_x,
+                    canvas_offset_y,
+                    handclick.current_scale
+                )
                 running = False
                 print("保存画布")
             if event.key == pygame.K_q:  # 按 "Q" 键退出
                 running = False
                 print("退出程序")
     if handclick.mode == "save":
-        sal.export_canvas_with_dialog(canvas)
+        sal.export_canvas_with_dialog(
+                    canvas,
+                    image_layer,
+                    loaded_files,  # 传递导入的图片列表
+                    canvas_offset_x,
+                    canvas_offset_y,
+                    handclick.current_scale
+                )
         print("保存画布")
         running = False
 
