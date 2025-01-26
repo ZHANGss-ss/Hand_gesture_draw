@@ -160,6 +160,8 @@ while running:
                             draw.draw_brush(image_layer, canvas_x, canvas_y,
                                             handclick.current_thickness, handclick.current_color)
                     prev_x, prev_y = x, y
+                else:
+                    prev_x, prev_y = None, None
             elif handclick.mode == "erase":
                 if gesture.operator(hand_landmarks):
                     if prev_x is not None and prev_y is not None:
@@ -177,9 +179,10 @@ while running:
                             canvas, image_layer = draw.ensure_canvas_size(canvas, image_layer, x - canvas_offset_x, y - canvas_offset_y, handclick.current_scale)
                             # 在图片层上擦除
                             draw.draw_brush(image_layer, canvas_x, canvas_y,
-                                            handclick.current_thickness, (255, 255, 255))
+                                            handclick.current_thickness, (0, 0, 0, 0))
                     prev_x, prev_y = x, y
-
+                else:
+                    prev_x, prev_y = None, None
             elif handclick.mode == "file":
                 print("文件选择，功能待完成")
 
@@ -203,10 +206,6 @@ while running:
     scaled_canvas = pygame.transform.scale(canvas, (scaled_width, scaled_height))
     screen.blit(scaled_canvas, (canvas_offset_x, canvas_offset_y))
     
-    # 绘制图片层内容，考虑偏移
-    scaled_image_layer = pygame.transform.scale(image_layer, (scaled_width, scaled_height))
-    screen.blit(scaled_image_layer, (canvas_offset_x, canvas_offset_y))
-    
     # 绘制导入的文件
     for file in loaded_files:
         # 重新生成缩放后的图像
@@ -227,6 +226,10 @@ while running:
             file["scale"] = min(file["scale"] + 0.1, 2.0)
         elif minus_button_rect.collidepoint(shadow_pos):
             file["scale"] = max(file["scale"] - 0.1, 0.5)
+
+    # 绘制图片层内容，考虑偏移
+    scaled_image_layer = pygame.transform.scale(image_layer, (scaled_width, scaled_height))
+    screen.blit(scaled_image_layer, (canvas_offset_x, canvas_offset_y))
 
     # 绘制画布边界
     draw.draw_canvas_border(screen, canvas, canvas_offset_x, canvas_offset_y, handclick.current_scale)
