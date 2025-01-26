@@ -111,7 +111,7 @@ while running:
                         steps = 1  # 至少画一个
                     for i in range(steps + 1):
                         interpolated_x = prev_x + (x - prev_x) * i // steps
-                        interpolated_y = prev_y + (y - prev_y) * i // steps
+                        interpolated_y = prev_y + (y - prev_y) * i // steps                
                         draw.draw_brush(canvas, interpolated_x - canvas_offset_x, interpolated_y - canvas_offset_y,
                                   handclick.current_thickness,handclick.current_color)
                 prev_x, prev_y = x, y
