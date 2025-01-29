@@ -1,3 +1,4 @@
+#main.py
 import pygame
 import cv2
 import mediapipe as mp
@@ -32,10 +33,12 @@ canvas_offset_x, canvas_offset_y = 0, 0
 is_dragging = False
 drag_start_x, drag_start_y = 0, 0
 font = pygame.font.SysFont(None, 30)
-pen_image = pygame.image.load(handclick.asset_path + "pencil.ico")
-rub_image = pygame.image.load(handclick.asset_path + "eraser.ico")
+pen_image = pygame.image.load(handclick.asset_path + "pencil-black.png")
+rub_image = pygame.image.load(handclick.asset_path + "eraser.png")
+drag_image = pygame.image.load(handclick.asset_path + "mouse.png")
 pen_image = pygame.transform.scale(pen_image, (30, 30))
 rub_image = pygame.transform.scale(rub_image, (30, 30))
+drag_image = pygame.transform.scale(drag_image, (30, 30))
 loaded_files = handclick.loaded_files
 image_layer = pygame.Surface((1000, 750), pygame.SRCALPHA)
 image_layer.fill((0, 0, 0, 0))
@@ -126,10 +129,11 @@ while running:
     draw.draw_canvas_border(screen, canvas, canvas_offset_x, canvas_offset_y, handclick.current_scale)
     screen.blit(shadow_layer, (0, 0))
 
-    if handclick.mode == "draw":
-        screen.blit(pen_image, (x - 15, y - 15))
-    elif handclick.mode == "erase":
+
+    if handclick.mode == "erase":
         screen.blit(rub_image, (x - 15, y - 15))
+    elif handclick.mode == "drag":
+        screen.blit(drag_image, (x - 15, y - 15))
 
     handclick.draw_buttons(screen, screen_width, screen_height)
     mode_text = font.render(f"Mode: {handclick.mode}", True, (0, 0, 0))
