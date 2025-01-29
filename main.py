@@ -1,31 +1,22 @@
 import pygame
 import cv2
 import mediapipe as mp
-import math
 import time
 import Gesture_Judgement as gesture
 import Hand_Click as handclick
-import draw
-import file_handler
+import saveandload as sal
+import draw, file
 
-# 初始化 PyGame 和画布
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
-canvas = pygame.Surface((20000, 15000))  # 初始画布大小
-canvas.fill((255, 255, 255))  # 白色背景
-shadow_layer = pygame.Surface((800, 600), pygame.SRCALPHA)  # 专用阴影层
+# 设置窗口初始大小为800x600，并且可以调整大小
+screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+screen_width, screen_height = screen.get_size()
+canvas = pygame.Surface((1000, 750))
+canvas.fill((255, 255, 255))
+shadow_layer = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
-pygame.display.set_caption("Gesture Drawing with Files")
-
-# 初始化文件处理器
-file_handler = file_handler.FileHandler()
-
-# 初始化摄像头
+pygame.display.set_caption("Gesture Drawing")
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-# 初始化 MediaPipe Hands
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
     static_image_mode=False,
@@ -34,16 +25,21 @@ hands = mp_hands.Hands(
     min_tracking_confidence=0.5
 )
 
-# 初始化变量
+clock = pygame.time.Clock()
+x, y = 0, 0
 prev_x, prev_y = None, None
-canvas_offset_x, canvas_offset_y = 0, 0  # 画布偏移
-drawing_on_file = False  # 标记是否在文件上绘画
-
-# 初始化字体
-pygame.font.init()
+canvas_offset_x, canvas_offset_y = 0, 0
+is_dragging = False
+drag_start_x, drag_start_y = 0, 0
 font = pygame.font.SysFont(None, 30)
+pen_image = pygame.image.load(handclick.asset_path + "pencil.ico")
+rub_image = pygame.image.load(handclick.asset_path + "eraser.ico")
+pen_image = pygame.transform.scale(pen_image, (30, 30))
+rub_image = pygame.transform.scale(rub_image, (30, 30))
+loaded_files = handclick.loaded_files
+image_layer = pygame.Surface((1000, 750), pygame.SRCALPHA)
+image_layer.fill((0, 0, 0, 0))
 
-# 主循环
 running = True
 prev_time = time.time()
 
@@ -51,107 +47,103 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            # 检测Ctrl+O组合键
-            keys = pygame.key.get_pressed()
-            if event.key == pygame.K_o and (keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]):
-                file_obj = file_handler.load_file()
-                if file_obj:
-                    file_handler.add_file_object(file_obj)
+        elif event.type == pygame.VIDEORESIZE:
+            # 当窗口大小改变时，更新屏幕大小和shadow_layer
+            screen_width, screen_height = event.w, event.h
+            screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+            shadow_layer = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                mouse_pos = pygame.mouse.get_pos()
+                handclick.handle_button_click(mouse_pos, canvas, from_mouse=True)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                running = False
 
-    # 捕获摄像头图像
     ret, frame = cap.read()
     if not ret:
         break
     frame = cv2.flip(frame, 1)
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    handclick.draw_buttons(screen, screen_width, screen_height)
 
-    # 手势检测
     result = hands.process(rgb_frame)
     if result.multi_hand_landmarks:
         for hand_landmarks in result.multi_hand_landmarks:
-            # 获取食指指尖坐标
+            mp.solutions.drawing_utils.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
             index_finger = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
-            x, y = int(index_finger.x * 800), int(index_finger.y * 600)
+            x, y = int(index_finger.x * screen_width), int(index_finger.y * screen_height)
 
-            # 清空阴影层
             shadow_layer.fill((0, 0, 0, 0))
+            draw.draw_shadow(shadow_layer, handclick.current_color, x, y, handclick.current_thickness)
+            handclick.handle_button_click((x, y), canvas, from_mouse=False)
 
-            # 检查是否悬停在按钮上
-            handclick.check_button_hover((x, y))
+            if handclick.mode == "drag":
+                if not gesture.operator(hand_landmarks):
+                    is_dragging = False
+                    prev_x, prev_y = None, None
+                elif gesture.operator(hand_landmarks) and not is_dragging:
+                    is_dragging = True
+                    drag_start_x, drag_start_y = x, y
+                elif is_dragging:
+                    canvas_offset_x += x - drag_start_x
+                    canvas_offset_y += y - drag_start_y
+                    drag_start_x, drag_start_y = x, y
 
-            # 绘制阴影
-            handclick.draw_shadow(shadow_layer, (x, y))
-
-            if handclick.is_dragging():
-                # 处理文件对象的拖拽和缩放
-                file_handler.handle_event((x, y), gesture.operator(hand_landmarks))
-            elif gesture.operator(hand_landmarks):
-                if handclick.is_erasing():
-                    # 尝试在文件上擦除
-                    drawing_on_file = file_handler.draw_on_selected((x, y), (255, 255, 255, 0), handclick.current_thickness)
-                    
-                    # 如果不在文件上，则在画布上擦除
-                    if not drawing_on_file and prev_x is not None and prev_y is not None:
+            elif handclick.mode in ["draw", "erase"]:
+                if gesture.operator(hand_landmarks):
+                    if prev_x is not None and prev_y is not None:
                         steps = max(abs(x - prev_x), abs(y - prev_y)) // 2
-                        if steps == 0:
-                            steps = 1
+                        steps = steps if steps > 0 else 1
                         for i in range(steps + 1):
                             interpolated_x = prev_x + (x - prev_x) * i // steps
                             interpolated_y = prev_y + (y - prev_y) * i // steps
-                            draw.draw_brush(canvas, 
-                                          interpolated_x - canvas_offset_x, 
-                                          interpolated_y - canvas_offset_y,
-                                          handclick.current_thickness,
-                                          (255, 255, 255))
+                            canvas_x = (interpolated_x - canvas_offset_x) / handclick.current_scale
+                            canvas_y = (interpolated_y - canvas_offset_y) / handclick.current_scale
+                            canvas, image_layer = draw.ensure_canvas_size(canvas, image_layer, x - canvas_offset_x, y - canvas_offset_y, handclick.current_scale)
+                            if handclick.mode == "draw":
+                                draw.draw_brush(image_layer, canvas_x, canvas_y, handclick.current_thickness, handclick.current_color)
+                            else:
+                                draw.draw_brush(image_layer, canvas_x, canvas_y, handclick.current_thickness, (0, 0, 0, 0))
+                    prev_x, prev_y = x, y
                 else:
-                    # 尝试在文件上绘画
-                    drawing_on_file = file_handler.draw_on_selected((x, y), handclick.current_color, handclick.current_thickness)
-                    
-                    # 如果不在文件上，则在画布上绘画
-                    if not drawing_on_file and prev_x is not None and prev_y is not None:
-                        steps = max(abs(x - prev_x), abs(y - prev_y)) // 2
-                        if steps == 0:
-                            steps = 1
-                        for i in range(steps + 1):
-                            interpolated_x = prev_x + (x - prev_x) * i // steps
-                            interpolated_y = prev_y + (y - prev_y) * i // steps
-                            draw.draw_brush(canvas, 
-                                          interpolated_x - canvas_offset_x, 
-                                          interpolated_y - canvas_offset_y,
-                                          handclick.current_thickness,
-                                          handclick.current_color)
-                prev_x, prev_y = x, y
-            else:
-                prev_x, prev_y = None, None
-                drawing_on_file = False
-    else:
-        prev_x, prev_y = None, None
-        drawing_on_file = False
+                    prev_x, prev_y = None, None
 
-    # 绘制界面
     screen.fill((255, 255, 255))
+    scaled_width = int(canvas.get_width() * handclick.current_scale)
+    scaled_height = int(canvas.get_height() * handclick.current_scale)
+    scaled_canvas = pygame.transform.scale(canvas, (scaled_width, scaled_height))
+    screen.blit(scaled_canvas, (canvas_offset_x, canvas_offset_y))
     
-    # 绘制画布内容
-    screen.blit(canvas, (canvas_offset_x, canvas_offset_y))
-    
-    # 绘制文件对象
-    file_handler.draw(screen)
-    
-    # 绘制阴影层和按钮
-    screen.blit(shadow_layer, (0, 0))
-    handclick.draw_buttons(screen)
+    for file in loaded_files:
+        scaled_image = pygame.transform.scale(file["original_image"], (int(file["original_image"].get_width() * file["scale"]), int(file["original_image"].get_height() * file["scale"])))
+        file["image"] = scaled_image
+        file["rect"] = scaled_image.get_rect(topleft=file["rect"].topleft)
+        screen.blit(scaled_image, file["rect"].topleft)
 
-    # 显示FPS
+    scaled_image_layer = pygame.transform.scale(image_layer, (scaled_width, scaled_height))
+    screen.blit(scaled_image_layer, (canvas_offset_x, canvas_offset_y))
+    draw.draw_canvas_border(screen, canvas, canvas_offset_x, canvas_offset_y, handclick.current_scale)
+    screen.blit(shadow_layer, (0, 0))
+
+    if handclick.mode == "draw":
+        screen.blit(pen_image, (x - 15, y - 15))
+    elif handclick.mode == "erase":
+        screen.blit(rub_image, (x - 15, y - 15))
+
+    handclick.draw_buttons(screen, screen_width, screen_height)
+    mode_text = font.render(f"Mode: {handclick.mode}", True, (0, 0, 0))
+    screen.blit(mode_text, (screen_width - 200, 10))
+
     current_time = time.time()
-    fps = 1 / (current_time - prev_time)
+    fps = 1 / (current_time - prev_time) if current_time - prev_time > 0 else 0
     prev_time = current_time
-    fps_text = font.render(f'FPS: {int(fps)}', True, (0, 0, 0))
-    screen.blit(fps_text, (10, 10))
+    fps_text = font.render(f"FPS: {fps:.2f}", True, (0, 0, 0))
+    screen.blit(fps_text, (screen_width - 120, screen_height - 40))
 
     pygame.display.flip()
+    clock.tick(60)
 
-# 清理资源
 cap.release()
 cv2.destroyAllWindows()
 pygame.quit()
