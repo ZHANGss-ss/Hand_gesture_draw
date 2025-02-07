@@ -52,7 +52,7 @@ shadow_pos = (0, 0)
 button_cooldown = 0.25  # 按钮冷却时间（秒）
 last_button_click_time = 0  # 上次按钮点击时间
 
-def handle_button_click(pos, canvas):
+def handle_button_click(pos, canvas, layer):
     """处理按钮点击"""
     global current_color, current_thickness, mode, last_button_click_time, current_scale
     current_time = time.time()
@@ -90,7 +90,7 @@ def handle_button_click(pos, canvas):
                         })
                     print("文件选择")
                 elif button["action"] == "clear_canvas":
-                    canvas.fill((255, 255, 255))  # 用白色填充画布
+                    layer.fill((0, 0, 0, 0))  # 用白色填充画布
                     prev_x, prev_y = None, None  # 重置绘制时的起点坐标
                 elif button["action"] == "minus":
                     current_scale = max(current_scale - 0.05, 0.5)
