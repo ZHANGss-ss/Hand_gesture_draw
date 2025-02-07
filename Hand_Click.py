@@ -83,7 +83,7 @@ shadow_pos = (0, 0)
 button_cooldown = 0.25
 last_button_click_time = 0
 
-def handle_button_click(pos, canvas, from_mouse=False):
+def handle_button_click(pos, canvas, layer, from_mouse=False):
     """处理按钮点击"""
     global current_color, current_thickness, mode, last_button_click_time, current_scale
     current_time = time.time()
@@ -115,7 +115,7 @@ def handle_button_click(pos, canvas, from_mouse=False):
                             "scale": new_file["scale"]
                         })
                 elif action == "clear_canvas":
-                    canvas.fill((255, 255, 255))
+                    layer.fill((0, 0, 0, 0))
                 elif action == "minus":
                     current_scale = max(current_scale - 0.05, 0.5)
                 elif action == "plus":

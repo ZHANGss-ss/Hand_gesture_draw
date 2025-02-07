@@ -58,7 +58,7 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
-                handclick.handle_button_click(mouse_pos, canvas, from_mouse=True)
+                handclick.handle_button_click(mouse_pos, canvas, image_layer, from_mouse=True)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
                 running = False
@@ -79,7 +79,7 @@ while running:
 
             shadow_layer.fill((0, 0, 0, 0))
             draw.draw_shadow(shadow_layer, handclick.current_color, x, y, handclick.current_thickness)
-            handclick.handle_button_click((x, y), canvas, from_mouse=False)
+            handclick.handle_button_click((x, y), canvas, image_layer, from_mouse=False)
 
             if handclick.mode == "drag":
                 if not gesture.operator(hand_landmarks):
