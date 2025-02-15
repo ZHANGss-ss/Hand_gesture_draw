@@ -62,6 +62,26 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
                 running = False
+            elif event.key == pygame.K_s:
+                sal.export_canvas_with_dialog(
+                    canvas,
+                    image_layer,
+                    loaded_files,  # 传递导入的图片列表
+                    canvas_offset_x,
+                    canvas_offset_y,
+                    handclick.current_scale
+                )
+                running = False
+        if handclick.mode == "save":
+            sal.export_canvas_with_dialog(
+                    canvas,
+                    image_layer,
+                    loaded_files,  # 传递导入的图片列表
+                    canvas_offset_x,
+                    canvas_offset_y,
+                    handclick.current_scale
+                )
+            running = False
 
     ret, frame = cap.read()
     if not ret:
@@ -79,20 +99,32 @@ while running:
 
             shadow_layer.fill((0, 0, 0, 0))
             draw.draw_shadow(shadow_layer, handclick.current_color, x, y, handclick.current_thickness)
-            handclick.handle_button_click((x, y), canvas, image_layer, from_mouse=False)
+            shadow_pos = (x, y)
+            handclick.handle_button_click(shadow_pos, canvas, image_layer, from_mouse=False)
 
-            if handclick.mode == "drag":
+            if handclick.mode == "drag":  # drag 模式下
                 if not gesture.operator(hand_landmarks):
                     is_dragging = False
-                    prev_x, prev_y = None, None
+                    prev_x, prev_y = None, None  # 停止拖拽时重置坐标
                 elif gesture.operator(hand_landmarks) and not is_dragging:
+                    # 手掌捏合时开始拖拽
                     is_dragging = True
                     drag_start_x, drag_start_y = x, y
-                elif is_dragging:
-                    canvas_offset_x += x - drag_start_x
-                    canvas_offset_y += y - drag_start_y
-                    drag_start_x, drag_start_y = x, y
-
+                elif is_dragging:  # 如果正在拖拽，更新画布偏移
+                    if any(file["rect"].collidepoint(x, y) for file in loaded_files):
+                        for file in loaded_files:
+                            if file["rect"].collidepoint(x, y):
+                                file["rect"].x += x - drag_start_x
+                                file["rect"].y += y - drag_start_y
+                        drag_start_x, drag_start_y = x, y
+                    else:
+                        canvas_offset_x += x - drag_start_x
+                        canvas_offset_y += y - drag_start_y
+                        # 更新图片层的偏移
+                        for file in loaded_files:
+                            file["rect"].x += x - drag_start_x
+                            file["rect"].y += y - drag_start_y
+                        drag_start_x, drag_start_y = x, y  # 更新起始坐标
             elif handclick.mode in ["draw", "erase"]:
                 if gesture.operator(hand_landmarks):
                     if prev_x is not None and prev_y is not None:
@@ -119,10 +151,23 @@ while running:
     screen.blit(scaled_canvas, (canvas_offset_x, canvas_offset_y))
     
     for file in loaded_files:
-        scaled_image = pygame.transform.scale(file["original_image"], (int(file["original_image"].get_width() * file["scale"]), int(file["original_image"].get_height() * file["scale"])))
+        scaled_image = pygame.transform.scale(file["original_image"], (int(file["original_image"].get_width() * file["scale"] * handclick.current_scale), int(file["original_image"].get_height() * file["scale"] * handclick.current_scale)))
         file["image"] = scaled_image
         file["rect"] = scaled_image.get_rect(topleft=file["rect"].topleft)
         screen.blit(scaled_image, file["rect"].topleft)
+        pygame.draw.rect(screen, (0, 255, 0), file["rect"], 2)  # 绿色边框
+
+        # 绘制放大和缩小按钮
+        plus_button_rect = pygame.Rect(file["rect"].topright[0] + 5, file["rect"].topright[1] - 15, 30, 20)
+        minus_button_rect = pygame.Rect(file["rect"].topright[0] + 5, file["rect"].topright[1] + 15, 30, 20)
+        pygame.draw.rect(screen, (0, 0, 255), plus_button_rect)
+        pygame.draw.rect(screen, (255, 0, 0), minus_button_rect)
+
+        # 检查按钮点击
+        if plus_button_rect.collidepoint(shadow_pos):
+            file["scale"] = min(file["scale"] + 0.1, 2.0)
+        elif minus_button_rect.collidepoint(shadow_pos):
+            file["scale"] = max(file["scale"] - 0.1, 0.5)
 
     scaled_image_layer = pygame.transform.scale(image_layer, (scaled_width, scaled_height))
     screen.blit(scaled_image_layer, (canvas_offset_x, canvas_offset_y))
